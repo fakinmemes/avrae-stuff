@@ -1,0 +1,1 @@
+Automates the Alter Memories class feature of the Enchantment Wizard!

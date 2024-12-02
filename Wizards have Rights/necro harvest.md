@@ -1,0 +1,1 @@
+Automates the Grim Harvest feature of the Necromancy Wizard.

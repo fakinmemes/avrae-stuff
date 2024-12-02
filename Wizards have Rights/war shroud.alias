@@ -1,0 +1,29 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(args)
+n = '\n'
+c = combat()
+ch = character()
+l = WizardLevel
+
+err("Your Wizard Level is not high enough!") if WizardLevel<14 else ""
+
+targetph = parse.get('t')
+targets = []
+dline = floor(l/2)
+d = vroll(dline+"[force]")
+
+targetph = [c.get_combatant(i) for i in targetph if c]
+[targets.append(i) for i in targetph if i]
+trange = range(len(targets))
+dlist = [targets[x].damage(d.consolidated()) for x in trange]
+
+outText = f''' -title "{name} arcs damage around from their Deflecting Shroud!" -f "Meta|**Damage:** {d}" '''
+outText += ' '.join([f'''-f "{targets[x].name}|{dlist[x].damage}{n}**HP** {targets[x].hp_str()}"''' for x in trange])
+outText += f''' -f "Effects|When you use your Arcane Deflection feature, you can cause magical energy to arc from you. Up to three creatures of your choice that you can see within 60 feet of you each take force damage equal to half your wizard level."'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}war for help | I love Pie"'''
+
+</drac2>

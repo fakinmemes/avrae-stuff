@@ -1,0 +1,40 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ""
+target = parse.last('t')
+sb = parse.last('sb')
+succ = parse.get("pass")
+fail = parse.get("fail")
+cb = c.get_combatant(target) if target and c else "" 
+adv = parse.adv(boolwise=True,custom={'adv':'sadv','dis':'sdis'})
+
+immune = cb.get_effect('Cannot be Charmed (Instinctive Charm)') if cb else False
+err("Your Wizard Level is not high enough!") if WizardLevel<6 else err("This creature cannot be Charmed by Instinctive Charm until your next long rest!") if immune else ""
+
+pb = proficiencyBonus
+dc = 8+pb+intelligenceMod
+
+sb = str('-sb '+sb) if sb else ""
+cb.add_effect("Placeholder",sb) if cb else ""
+wsave = cb.save('wisdom',adv) if cb else ""
+result = True if succ else False if fail else wsave.total>=dc if cb else ""
+cb.remove_effect("Placeholder") if cb else ""
+
+effectn = 'Attack Diverted (Instictive Charm)' if not result else 'Cannot be Charmed (Instinctive Charm)'
+dur1 = int(1 if not result else -1)
+cb.add_effect(effectn,'',dur1,False,None,True) if cb else ""
+
+outText = f''' -title "{name} tries to divert the attack of {cb.name}!"''' if cb else f''' -title "{name} tries to divert an attack!"'''
+outText += f''' -f "Meta|**DC:** {dc}"'''
+outText += f''' -f "{cb.name}|**WIS Save:** {"Automatic Success!" if succ else "Automatic Failure!" if fail else wsave} {"" if succ or fail else '; Success!' if result else '; Failure!'}{n}**Effect:** {effectn}"''' if cb else ""
+outText += f''' -f "Effect|When a creature you can see within 30 feet of you makes an attack roll against you, you can use your reaction to divert the attack, provided that another creature is within the attack's range. The attacker must make a Wisdom saving throw against your wizard spell save DC. On a failed save, the attacker must target the creature that is closest to it, not including you or itself. If multiple creatures are closest, the attacker chooses which one to target. On a successful save, you can't use this feature on the attacker again until you finish a long rest.{n}{n}You must choose to use this feature before knowing whether the attack hits or misses. Creatures that can't be charmed are immune to this effect."'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}enchant for help | I love Pie"'''
+
+</drac2>

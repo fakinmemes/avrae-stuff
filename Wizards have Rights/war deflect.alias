@@ -1,0 +1,48 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(args)
+attack = parse.get("attack")
+nsave = parse.last('save',0,int)
+n = '\n'
+c = combat()
+ch = character()
+chc = c.me if c else ""
+l = WizardLevel
+ac = chc.ac+2 if chc else armor+2
+newsave = nsave+4 if nsave else 0
+damage = parse.last('d',0,int)
+effect = parse.get('effect')
+effect = effect[0] if effect else ""
+
+err("Your Wizard Level is not high enough!") if WizardLevel<2 else ""
+
+chc.add_effect(name="Can't cast spells other than cantrips",duration=1,end=True) if chc else ""
+
+if attack and nsave:
+    return err("You can't both block an attack and a saving throw.")
+
+outText = f''' -title {name} tries to Deflect{'a lot of things' if nsave and attack else ' a save' if nsave else ' an attack' if attack else ""}! -desc "When you are hit by an attack or you fail a saving throw, you can use your reaction to gain a +2 bonus to your AC against that attack or a +4 bonus to that saving throw.{n}{n}When you use this feature, you can’t cast spells other than cantrips until the end of your next turn."'''
+outText += f''' {'-f "New AC|'+ac+' (+2)|inline"' if attack else ""} {'-f "New Save Value|'+newsave+' (+4)|inline"' if nsave else ""}''' 
+outText += f''' -f "Effect|{chc.get_effect('cast spells other than cantrips')}"''' if attack or nsave else f''' -f "Effect|Attack or save was not specified!"''' if chc else ""
+
+if damage>0:
+	shrouded = chc if c else ch
+	hpspill = damage-(shrouded.max_hp-shrouded.hp)
+	hpheal = min(shrouded.max_hp-shrouded.hp,damage)
+	shrouded.modify_hp(hpheal,overflow=False)
+	shrouded.set_temp_hp(hpspill)
+	outText += f''' -f "Damage Reflected|{damage} Damage|inline" -f "Current HP|{shrouded.hp_str()}|inline"'''
+
+if effect:
+	if c:
+		x = chc.get_effect(effect)
+		chc.remove_effect(effect)
+		outText += f''' -f "Removed Effect|{x}|inline" '''
+	else:
+		outText += f''' -f "Removed Effect|{effect[0]}|inline"'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}war for help | I love Pie"'''
+
+</drac2>

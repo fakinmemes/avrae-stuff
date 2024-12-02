@@ -1,0 +1,11 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+n = '\n'
+
+outText = f''' -title "{name} needs help with their Martial Magics!" -desc "This alias helps to you! You the War Wizard, to manage your class features!" -f "Durable Magic|
+`{pfx}war durable` — Checks if you are concentrating on a spell and applies the Durable Magic buff parented to the concentration spell, so it removes itself when the concentration spell is dropped." -f "Deflecting Shroud|`{pfx}war shroud` — Shows you how much damage you will do with your deflecting shroud. Add targets using `-t <targets>` to deal damage to them." -f "Arcane Deflection|`{pfx}war deflect` — Calculates the AC and save after using the Arcane Deflection feature and adds an effect that notes that cantrips cannot be used until the start of the next turn.{n}{n}Valid Arguments{n}`-attack` — Displays the AC after Arcane Deflection is used.{n}`-save #` — Displays the save value after Arcane Deflection is used. Must manually input the save value.{n}`-d #` — Restores HP (and Temp HP) for Arcane Deflection.{n}`-effect <name>` — Removes an existing effect for Arcane Deflection."'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}war for help | I love Pie"'''
+
+</drac2>

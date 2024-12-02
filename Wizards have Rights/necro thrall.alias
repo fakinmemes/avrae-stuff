@@ -1,0 +1,27 @@
+{{args,parse,c = &ARGS&,argparse(&ARGS&),combat()}}{{targets = parse.get('t')}}{{'multiline' if c and targets else 'tembed'}} <drac2>
+
+n = '\n'
+pfx = ctx.prefix
+
+err("Your Wizard Level is not high enough!") if WizardLevel<6 else ""
+
+hp = WizardLevel
+dam = proficiencyBonus
+damline = dam
+targets = [] if not c else targets
+combatants = []
+
+for x in targets:
+  if (combatant := combat().get_combatant(x) ):
+    combatants.append(combatant)
+  else:
+    combatants += combat().get_group(x).combatants
+
+for x in combatants:
+	x.add_effect(name='Undead Thralls',passive_effects={"damage_bonus":dam,"max_hp_bonus":hp})
+
+outText = f'''{n}!tembed -title "{name} Bolsters their Thralls!" -desc "When you create an undead using a necromancy spell, its Hit Point maximum is increased by {hp} and its Weapon Damage Rolls deal an additional {dam} damage." -footer "{pfx}necro for help | I love Pie" -thumb {image} -color {color}{n}'''
+
+return outText
+
+</drac2>

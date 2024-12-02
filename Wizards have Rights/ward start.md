@@ -1,0 +1,1 @@
+This allows you to create the Arcane Ward, setting its HP up. Using `-i` with this will cause it to not use the Arcane Ward counter, mainly for testing purposes.

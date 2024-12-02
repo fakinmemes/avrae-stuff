@@ -1,0 +1,41 @@
+tembed <drac2>
+
+n = '\n'
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(args)
+c = combat()
+ch = character()
+chc = c.get_combatant(ch.name) if c else ""
+dc = ch.spellbook.dc
+
+adv = parse.adv(boolwise=True,custom={'adv':'sadv','dis':'sdis'})
+sb = parse.last('sb')
+succ = parse.get("pass")
+fail = parse.get("fail")
+
+err("Your Wizard Level is not high enough!") if WizardLevel<14 else ""
+
+t = parse.last('t')
+cb = c.get_combatant(t) if c else ""
+smart = cb.stats.intelligence>=8 if cb else False
+
+sb = str('-sb '+sb) if sb else ""
+cb.add_effect("Placeholder",sb) if cb else ""
+csave = cb.save('charisma',adv) if cb else ""
+result = True if succ else False if fail else csave.total>=dc if cb else ""
+cb.remove_effect("Placeholder") if cb else ""
+
+effectn = 'Controlled (Command Undead)' if not result else 'Cannot be Controlled (Commanded Undead)'
+cb.add_effect(effectn,'') if cb else ""
+
+outText = f''' -title "{name} tries to Command {cb.name if cb else 'an Undead'}! "'''
+outText += f''' -f "Meta|**DC:** {dc}"'''
+outText += f''' -f "{cb.name}|**CHA Save:** {"Automatic Success!" if succ else "Automatic Failure!" if fail else csave} {"" if succ or fail else '; Success!' if result else '; Failure!'}{n}**Effect:** {effectn}"''' if cb else ""
+outText += f''' -f "Effect|As an action, you can choose one undead that you can see within 60 feet of you. That creature must make a Charisma saving throw against your wizard spell save DC. If it succeeds, you can't use this feature on it again. If it fails, it becomes friendly to you and obeys your commands until you use this feature again.
+
+Intelligent undead are harder to control in this way. If the target has an Intelligence of 8 or higher, it has advantage on the saving throw. If it fails the saving throw and has an Intelligence of 12 or higher, it can repeat the saving throw at the end of every hour until it succeeds and breaks free."'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}necro for help | I love Pie"'''
+
+</drac2>

@@ -1,0 +1,1 @@
+Automates the Instinctive Charm class feature of the Enchantment Wizard.

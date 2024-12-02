@@ -1,0 +1,39 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+parse = argparse(&ARGS&)
+arg = &ARGS&
+n = '\n'
+cc = "Arcane Ward"
+wardhp = "Arcane Ward - Hit Points"
+c = combat()
+ch = character()
+damage = parse.last('d',0,int)
+ss = parse.last('l',0,int)
+target = parse.last('t')
+i = parse.get('i')
+start = parse.get('start')
+wardmax = 2*WizardLevel+intelligenceMod
+
+if damage>0:
+	warded = c.get_combatant(target) if target and c else c.get_combatant(name) if c else ch
+	wardtaken = min(damage,ch.get_cc(wardhp))
+	ch.mod_cc(wardhp,-wardtaken)
+	hpspill = wardtaken-(warded.max_hp-warded.hp)
+	hpheal = min(warded.max_hp-warded.hp,wardtaken)
+	warded.modify_hp(hpheal,False,False)
+	warded.set_temp_hp(hpspill)
+	outText = f''' -title "{name} absorbs the damage with their Arcane Ward!" -f "Damage Taken|{damage} Damage ({wardtaken} warded)|inline" -f "Remaining Ward HP|{ch.cc_str(wardhp)}|inline" -f "{warded.name} (Current HP)|{warded.hp_str()}|inline"'''
+	outText += f' -desc "Whenever you take damage, the ward takes the damage instead. If this damage reduces the ward to 0 hit points, you take any remaining damage."' if not target else f' -desc "When a creature that you can see within 30 feet of you takes damage, you can use your reaction to cause your Arcane Ward to absorb that damage. If this damage reduces the ward to 0 hit points, the warded creature takes any remaining damage."' if WizardLevel>=6 else err("Your Wizard level is not high enough!")
+elif ss>0:
+	wardheal = ss*2
+	warddiff = int(wardmax-ch.get_cc(wardhp))
+	ch.mod_cc(wardhp,+wardheal)
+	outText = f''' -title "{name} infuses Abjuration magic into their Arcane Ward!" -desc "Whenever you cast an abjuration spell of 1st level or higher, the ward regains a number of hit points equal to twice the level of the spell." -f "Spell Slots|{ch.spellbook.slots_str(ss)}|inline" -f "Ward HP|{ch.get_cc(wardhp)} (+{min(wardheal,warddiff)})|inline"'''
+else:
+	outText = f''' -title "{name} needs help with managing their Arcane Ward!" -desc "This alias helps to you! You the Abjuration Wizard, to manage your Arcane Ward for you, preventing damage on both you and your teammates, making for easier tracking in combat!{n}{n}You need to have a Counter called `Arcane Ward` for the alias to work. To do this, you can run the `{pfx}level` alias by Derixylth#0636 or create the counter yourself using this command `{pfx}cc 'Arcane Ward' -max 1 -type bubble -reset long`." -f "Valid Arguments|`start` allows you to create the Arcane Ward, setting its HP up. Using `-i` with this will cause it to not use the Arcane Ward counter, mainly for testing purposes.{n}`-d #` is the main feature of the ward, and will replenish your lost HP (and temp HP), as well as consume the HP of the Arcane Ward, all in one! If you use it with `-t <target>` you can use the Projected Ward feature instead.{n}`-l #` replenishes the Arcane Ward based on the level of the slot used, and shows you how many slots you have left."'''
+	
+
+return outText+f' -thumb {image} -color {color} -footer "{pfx}ward for help | I love Pie"'
+
+</drac2>

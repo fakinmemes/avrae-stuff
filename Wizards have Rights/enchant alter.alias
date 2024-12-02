@@ -1,0 +1,37 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ""
+target = parse.last('t')
+sb = parse.last('sb')
+succ = parse.get("pass")
+fail = parse.get("fail")
+cb = c.get_combatant(target) if target and c else "" 
+adv = parse.adv(boolwise=True,custom={'adv':'sadv','dis':'sdis'})
+
+err("Your Wizard Level is not high enough!") if WizardLevel<14 else ""
+
+pb = proficiencyBonus
+dc = 8+pb+intelligenceMod
+
+sb = str('-sb '+sb) if sb else ""
+cb.add_effect("Placeholder",sb) if cb else ""
+isave = cb.save('intelligence',adv) if cb else ""
+result = True if succ else False if fail else isave.total>=dc if cb else ""
+cb.remove_effect("Placeholder") if cb else ""
+
+outText = f''' -title "{name} tries to Alter the Memories of {cb.name}!"''' if cb else f'''-title "{name} tries to Alter some Memories!"'''
+outText += f''' -f "Meta|**DC:** {dc}"'''
+outText += f''' -f "{cb.name if cb else "Target"}|**INT Save:** {"Automatic Success!" if succ else "Automatic Failure!" if fail else isave} {"" if succ or fail else '; Success!' if result else '; Failure!'}{n}{"**Effect:** Memories Lost!"+n+"**Hours of Memories Lost:** "+int(1+charismaMod) if not result else ""}"''' if cb else ""
+outText += f''' -f "Effect|When you cast an enchantment spell to charm one or more creatures, you can alter one creature's understanding so that it remains unaware of being charmed. Additionally, once before the spell expires, you can use your action to try to make the chosen creature forget some of the time it spent charmed. 
+
+The creature must succeed on an Intelligence saving throw against your wizard spell save DC or lose a number of hours of its memories equal to 1 + your Charisma modifier (minimum of 1). You can make the creature forget less time, and the amount of time can't exceed the duration of your enchantment spell."'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}enchant for help | I love Pie"'''
+
+</drac2>

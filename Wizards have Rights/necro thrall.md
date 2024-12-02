@@ -1,0 +1,1 @@
+Automates the Undead Thralls feature of the Necromancy Wizard.

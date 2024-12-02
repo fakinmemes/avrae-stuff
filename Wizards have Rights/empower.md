@@ -1,0 +1,1 @@
+Adds the active character's Intelligence Modifier to the first damage roll.

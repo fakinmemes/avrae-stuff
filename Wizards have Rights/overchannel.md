@@ -1,0 +1,1 @@
+For use with the overchannel alias. Maxes out the spell damage and adds to an Overchannel counter that determines how much damage will be taken.

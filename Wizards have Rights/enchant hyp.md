@@ -1,0 +1,1 @@
+Automates the Hypnotic Gaze feature of the Enchantment Wizard.

@@ -1,0 +1,1 @@
+Automates the Command Undead feature of the Necromancy Wizard.

@@ -1,0 +1,10 @@
+<drac2>
+l = WizardLevel
+ch = character()
+cc = 'Power Surge'
+use = max(intelligenceMod,1)
+ch.create_cc_nx(cc,0,use,'long','bubble',1,None,'Power Surge','You can store a maximum number of power surges equal to your Intelligence modifier (minimum of one). Whenever you finish a long rest, your number of power surges resets to one. Whenever you successfully end a spell with dispel magic or counterspell, you gain one power surge, as you steal magic from the spell you foiled. If you end a short rest with no power surges, you gain one power surge.') if l>=6 else ""
+err('Your Wizard Level is not high enough!') if l<6 else err('You have no more uses of Power Surge remaining!') if ch.get_cc(cc)<=0 else ""
+ch.mod_cc(cc,-1)
+</drac2>
+-f "Power Surge|Once per turn when you deal damage to a creature or object with a wizard spell, you can spend one power surge to deal extra force damage to that target. The extra damage equals half your wizard level." -f "{{cc}} (-1)|{{ch.cc_str(cc)}}" -d1 "{{floor(l/2)}}[force]"

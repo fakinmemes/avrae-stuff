@@ -1,0 +1,26 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+parse = argparse(&ARGS&)
+arg = &ARGS&
+n = '\n'
+cc = "Arcane Ward"
+wardhp = "Arcane Ward - Hit Points"
+c = combat()
+ch = character()
+damage = parse.last('d',0,int)
+ss = parse.last('l',0,int)
+target = parse.last('t')
+i = parse.get('i')
+start = "start" in arg
+wardmax = 2*WizardLevel+intelligenceMod
+
+ch.create_cc(wardhp,0,wardmax,'long',None,0)
+number = wardmax-ch.get_cc(wardhp)
+cctest = ch.get_cc(cc)>0
+ch.mod_cc(cc,-1) if cctest else "" if i else err("You have no more charges of your Arcane Ward left!")
+ch.mod_cc(wardhp,wardmax) if cctest or i else ""
+outText = f''' -title "{name} creates an Arcane Ward!" -desc "When you cast an abjuration spell of 1st level or higher, you can simultaneously use a strand of its Abjuration magic to create a magical ward on yourself that lasts until you finish a long rest. The ward has {wardmax} hit points. Whenever you take damage, the ward takes the damage instead. If this damage reduces the ward to 0 hit points, you take any remaining damage." -f "Arcane Ward{' (-1)' if not i else ""}|{ch.cc_str(cc)}|inline" -f "Ward HP|{ch.cc_str(wardhp)} (+{number})|inline"'''
+
+return outText+f' -thumb {image} -color {color} -footer "{pfx}ward for help | I love Pie"'
+</drac2>

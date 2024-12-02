@@ -1,0 +1,23 @@
+tembed <drac2>
+
+n = '\n'
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ch
+cc = 'Overchannel'
+l = argparse(&ARGS&).last('l',1,int)
+
+err("Your Wizard Level is not high enough!") if WizardLevel<14 else ""
+
+ch.create_cc_nx(cc,None,None,'long',None,0,None,'Overchannel Counter','Tracks the number of times Overchannel has been used. Resets on a long rest.')
+over = ch.get_cc(cc)-1
+dmgdie = (1+over)*l
+dmgstr = str(dmgdie+"d12") if over>0 else '0'
+dmgroll = vroll(dmgstr)
+chc.modify_hp(-dmgroll.total) if c else ch.modify_hp(-dmgroll.total)
+
+outText = f''' -title "{name} has Overchanneled{" too much" if over>0 else ""}!" -desc "When you cast a wizard spell of 1st through 5th-level that deals damage, you can deal maximum damage with that spell.{n}{n}The first time you do so, you suffer no adverse effect. If you use this feature again before you finish a long rest, you take 2d12 necrotic damage for each level of the spell, immediately after you cast it. Each time you use this feature again before finishing a long rest, the necrotic damage per spell level increases by 1d12. This damage ignores resistance and immunity." -f "Overchannel Uses|{ch.get_cc(cc)}|inline" -f "Damage Taken|{dmgroll+" [necrotic]" if over>0 else "You take no damage from Overchannel"}|inline"'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{name}: <{ch.hp_str()}> | !overchannel [-l #] to use | I love Pie"'''
+
+</drac2>

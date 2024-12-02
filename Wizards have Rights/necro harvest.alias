@@ -1,0 +1,22 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(args)
+c = combat()
+ch = character()
+chc = c.get_combatant(ch.name) if c else ""
+
+err("Your Wizard Level is not high enough!") if WizardLevel<2 else ""
+
+l = parse.last('l',0,int)
+n = parse.get('n')
+heal = +(int(l*3) if n else int(l*2) if l else 0)
+chc.modify_hp(heal,False,False) if chc else ch.modify_hp(heal,False,False) if l else ""
+
+outText = f''' -title "{name} draws on the residual Necromantic Energies to recover!" -desc "Once per turn when you kill one or more creatures with a spell of 1st level or higher, you regain hit points equal to twice the spell's level, or three times its level if the spell belongs to the School of Necromancy. You don't gain this benefit for killing constructs or undead." '''
+outText += f''' -f "Healing Amount|{vroll(heal)}|inline" -f "{name}|{chc.hp_str() if chc else ch.hp_str()} (+{heal})|inline"''' if l else ""
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}necro for help | I love Pie"'''
+
+</drac2>

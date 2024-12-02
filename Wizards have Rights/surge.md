@@ -1,0 +1,1 @@
+Automates the Power Surge feature of the War Wizard.

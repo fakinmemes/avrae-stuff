@@ -1,0 +1,19 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ""
+
+err("Your Wizard Level is not high enough!") if WizardLevel<10 else ""
+
+ceffects = [x for x in chc.effects if x.conc] if c else []
+ceffects = ceffects[0] if ceffects else ""
+
+chc.add_effect(name="Durable Magic",parent=ceffects,passive_effects={"ac_bonus":2,"save_bonus":2}) if ceffects else ""
+
+outText = f''' -title "{name} has some very Durable Magic!" -desc "The magic you channel helps ward off harm. While you maintain concentration on a spell, you have a +2 bonus to AC and all saving throws." -f "Concentrating on:|{ceffects.name if ceffects else "You are not concentrating on a spell!"}" -f "Effect|{chc.get_effect("Durable Magic") if ceffects else "There is no buff active!"}"'''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}war for help | I love Pie"'''
+
+</drac2>
