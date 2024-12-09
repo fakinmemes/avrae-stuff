@@ -1,0 +1,143 @@
+<drac2>
+# Define Core
+pfx = ctx.prefix
+n = '\n'
+args = &ARGS&
+parse = argparse(&ARGS&)
+
+# GVAR handling
+bast_json = load_json(get_gvar("d41fd165-23e0-4165-9c84-a23cdd851dba"))
+basic_facilities = bast_json["basic_facilities"]
+special_facilities = bast_json["special_facilities"]
+sizes = bast_json["sizes"]
+
+# Define Variables
+ch = character()
+levels = ch.levels.total_level
+max_facils = 2 if levels < 9 else 4 if levels < 13 else 5 if levels < 17 else 6
+bast = load_json(get("bastion", "[]"))
+
+if bast:
+    b_facils = f''' -f "Basic Facilities|{n.join([room.title()+" ("+bast["basic"][room][0].title()+")" for room in bast["basic"]])}|inline" '''
+    s_facils = f''' -f "Special Facilities|{n.join([room.title()+" ("+bast["special"][room][0].title()+")" for room in bast["special"]])}|inline" '''
+
+endstring = f''' -thumb {image} -color {color} -footer "{pfx}bast help for more details | I love Pie" '''
+
+
+## Additional Functions
+# Manage command
+if "manage" in args:
+    # Argparse
+    name = parse.last("name","")
+    desc = parse.last("desc","")
+    size = parse.last("size","").lower()
+    basic = parse.last("ba","").lower()
+    special = parse.last("sp","").lower()
+    facility = parse.last("f","").lower()
+
+
+    if "add" in args:
+        # Add a basic Facility
+        if basic in basic_facilities:
+            size = size if size in sizes else "cramped"
+            bast["basic"][basic] = [size]
+
+            # Update cvar
+            ch.set_cvar("bastion", dump_json(bast))
+            b_facils = f''' -f "Basic Facilities|{n.join([room.title()+" ("+bast["basic"][room][0].title()+")" for room in bast["basic"]])}|inline" '''
+
+            outText = f'''tembed -title "{ch.name} adds a {size.title()} {basic.title()} to their Bastion!" ''' + b_facils
+            if len(bast["basic"]) > 2:
+                outText += f''' -desc "The {basic} will cost {sizes[size]["cost"]} and take {sizes[size]["time"]} to complete." '''
+
+            return outText + endstring
+
+        # Add a special Facility
+        if special in special_facilities:
+            special_dict = special_facilities[special]
+            
+            # Check if all requirements are met
+            classes = [cls for (cls, level) in character().levels]
+            class_check = [cls for cls in classes if cls.lower() in special_dict["prereq"]]
+
+            failText = f'''tembed -title "{ch.name} failed to add a {special.title()} to their Bastion!" '''
+
+            if levels < special_dict["level"]:
+                return failText + f''' -desc "You have not reached the required level to add a {special.title()} to your bastion. To do so, you have to be **Level {special_dict["level"]}** or higher. Work harder, young padawan!" ''' + endstring
+            if not class_check and special_dict["prereq"]:
+                return failText + f''' -desc "You have not met the prerequisites to add a {special.title()} to your bastion. To do so, you have to be one of the following classes: **{", ".join(special_dict["prereq"])}**. Consider multiclassing if you wish to add this facility to your bastion." ''' + endstring
+            if len(bast["special"]) >= max_facils:
+                return failText + f''' -desc "You have already added the maximum number of special facilities to your bastion. Consider removing one before adding another." ''' + endstring
+
+            # Add the facility
+            bast["special"][special] = [special_dict["size"]]
+            ch.set_cvar("bastion", dump_json(bast))
+
+            s_facils = f''' -f "Special Facilities|{n.join([room.title()+" ("+bast["special"][room][0].title()+")" for room in bast["special"]])}|inline" '''
+
+            return f'''tembed -title "{ch.name} adds a {special.title()} to their Bastion!" ''' + s_facils + endstring
+            
+
+    # Remove a Facility
+    if "remove" in args:
+        if facility in bast["basic"]:
+            bast["basic"].pop(facility)
+            ch.set_cvar("bastion", dump_json(bast))
+            outText = f''' -f "Basic Facilities|{n.join([room.title()+" ("+bast["basic"][room][0].title()+")" for room in bast["basic"]])}|inline" '''
+            
+        if facility in bast["special"]:
+            bast["special"].pop(facility)
+            ch.set_cvar("bastion", dump_json(bast))
+            outText = f''' -f "Special Facilities|{n.join([room.title()+" ("+bast["special"][room][0].title()+")" for room in bast["special"]])}|inline" '''
+
+        return f'''tembed -title "{ch.name} removes a {facility.title()} from their Bastion!" ''' + outText + endstring
+
+
+    # Rename Bastion
+    if name:
+        bast["name"] = name
+        ch.set_cvar("bastion", dump_json(bast))
+
+        return f'''tembed -title "{ch.name} renames their Bastion to {name}!" -desc "`!bast` to view your bastion details." ''' + endstring
+
+
+    # Change Bastion Description
+    if desc:
+        bast["description"] = desc
+        ch.set_cvar("bastion", dump_json(bast))
+
+        return f'''tembed -title "{ch.name} changes their Bastion Description!" -desc "`!bast` to view your bastion details." -f "New Description|{desc}" ''' + endstring
+
+
+    return f'''tembed -title "{ch.name} wishes to Manage their Bastion!" -desc 'The following subcommands can be run to make changes to your bastion. Please make sure to use the full name when adding facilities or the command will default to this menu.{n+n}**Bastion Details**{n}`!bast manage -name "name"` changes your bastion name.{n}`!bast manage -desc "desc"` changes the description of your bastion. To add a newline, use `shift+enter` like a normal discord message. When adding quotes, use single quotes.{n+n}**Managing Facilities**{n}`!bast manage add -ba "facility" -size "size"` will add a basic facility of a specific size, defaulting to cramped if no argument is provided.{n}`!bast manage add -sp "facility"` will add a special facility if the character meets the requirements.{n}`!bast manage remove -f "facility"` will remove the facility if it is present in your bastion.' ''' + endstring
+
+    
+# Destroy Bastion
+if "destroy" in args:
+    ch.set_cvar("bastion", "[]")
+    return f'''tembed -title "{ch.name} has Destroyed their Bastion!" -desc "You can always establish a new bastion by running `!bast`." ''' + endstring
+
+
+## Core Functions
+# Check if character is of appropriate level
+if levels < 5:
+    return f'''tembed -title "{ch.name} wishes to establish a Bastion!" -desc "You must be at least level 5 to establish a bastion." ''' + endstring
+
+# Create a bastion if they do not have one and meet the requirements
+if not bast:
+    new_bastion = {"name": "New Bastion", "description": "A new bastion created by a player character. Much work still has to be done for this bastion! Run `!bast manage` to find out how to make changes to your bastion!", "basic": {}, "special": {}}
+
+    ch.set_cvar("bastion", dump_json(new_bastion))
+
+    return f'''tembed -title "{ch.name} has established a Bastion!" -desc "Run `!bast manage` to find out how to make changes to your bastion or `!bast` to view your bastion details!" ''' + endstring
+
+# View your Bastion 
+################### UI TO BE CONFIRMED ###################
+if bast:
+    outText = f'''tembed -title "{ch.name} wishes to Inspect their Bastion!" -f "Name|{bast["name"]}|inline" -f "Special Facilities|{max_facils}{" (Max)" if len(bast["special"]) == max_facils else ""}|inline" -f "Description|{bast["description"]}" '''
+    outText += b_facils if len(bast["basic"]) else ""
+    outText += s_facils if len(bast["special"]) else ""
+
+    return outText + endstring
+
+</drac2>
