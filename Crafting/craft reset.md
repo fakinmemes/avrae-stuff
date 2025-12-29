@@ -1,0 +1,1 @@
+Resets your current craft.

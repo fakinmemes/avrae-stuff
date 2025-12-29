@@ -1,0 +1,14 @@
+embed <drac2>
+
+pfx = ctx.prefix
+
+# Variable Initialization
+cd = get_svar("craftCooldown", 0)
+dc = get_svar("craftDC", [])
+gl = get_svar("craftGoal", [])
+
+outText = f''' -title "Server Customization Options" -desc "Look, I'm lazy as hell to set this one up. Just go check out `!craft` by Alpha to see what you need for this. I'll do it *eventually* but this one isn't a priority." -f "craftCooldown|{':white_check_mark:' if cd else ':x:'}|inline" -f "craftDC|{':white_check_mark:' if dc else ':x:'}|inline" -f "craftGoal|{':white_check_mark:' if gl else ':x:'}|inline" '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}craft for help | I love Pie"'''
+
+</drac2>

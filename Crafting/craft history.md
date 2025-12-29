@@ -1,0 +1,1 @@
+Views your crafting history.

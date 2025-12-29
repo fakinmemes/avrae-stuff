@@ -1,0 +1,23 @@
+embed <drac2>
+
+pfx   = ctx.prefix
+args  = &ARGS&
+parse = argparse(&ARGS&)
+n     = '\n'
+l     = level
+c     = character()
+pb    = proficiencyBonus
+rt    = c.csettings["talent"]
+
+# Variable Initialization
+main = c.get_cvar("craftDict", "")
+main = load_json(main) if main else {"craftStart":False}
+
+main["craftStart"] = False
+
+outText = f''' -title "{name} cleans up their Workstation!" '''
+outText += f''' -desc "Your current craft has been reset. Feel free to start another craft." '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}craft for help | I love Pie"'''
+
+</drac2>

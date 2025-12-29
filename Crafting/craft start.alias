@@ -1,0 +1,217 @@
+embed <drac2>
+
+pfx   = ctx.prefix
+args  = &ARGS&
+parse = argparse(&ARGS&)
+n     = '\n'
+l     = level
+c     = character()
+pb    = proficiencyBonus
+
+_str = parse.get("str",[False],bool)
+_dex = parse.get("dex",[False],bool)
+_con = parse.get("con",[False],bool)
+_int = parse.get("int",[False],bool)
+_wis = parse.get("wis",[False],bool)
+_cha = parse.get("cha",[False],bool)
+
+baseList = _str+_dex+_con+_int+_wis+_cha
+
+# Variable Initialization
+cd = load_json(get_svar("craftCooldown", 0))
+dc = load_json(get_svar("craftDC", []))
+gl = load_json(get_svar("craftGoal", []))
+
+main = c.get_cvar("craftDict", "")
+main = load_json(main) if main else {"craftStart":False,"craftDetails":{},"diceDetails":{},"history":{}}
+
+if not dc or not gl:
+    err("You need to get your svars setup first! Run `!craft setup` to figure out how to set these up!")
+
+##################################### FUNCTION SPACE ##########################################
+
+def capitalize(s):
+    return ' '.join(x.capitalize() for x in s.split())
+
+def timeStr(_time):
+    return "<t:"+_time+":s>"
+
+def toolParse(_tool):
+    # Tool Parsing
+    tools = get("toolProficiencies").split('\n')[:-1]
+    toolNames = get("pTools").split(', ')+get("eTools").split(', ')
+
+    toolStr = [t for t in toolNames if _tool.lower() in t.lower() and _tool][0] if _tool else "Untrained"
+    toolList = [t for t in tools if _tool.lower().replace(" ", "").replace("'", "") in t and _tool]
+    tb = int(toolList[0][-1:])*pb if toolList else 0
+    toolDice = tb+("[proficient]" if tb//pb==1 else "[expertise]" if tb//pb==2 else "[untrained]")
+
+    return toolStr, toolDice
+
+def baseParse(_base,_baseList):
+    # Define Skill bases
+    baseStr = ["str","dex","con","int","wis","cha"]
+    baseDice = [strengthMod+"[strength]",dexterityMod+"[dexterity]",constitutionMod+"[constitution]",intelligenceMod+"[intelligence]",wisdomMod+"[wisdom]",charismaMod+"[charisma]"]
+
+    if _base:
+        # Skill Parsing through Preinput
+        baseIndex = baseStr.index(_base)
+        baseDice = baseDice[baseIndex]
+        return _base, baseDice
+    else:
+        # Skill Parsing through Argument
+        baseIndex = _baseList.index(True) if True in _baseList else 1
+        baseStr = baseStr[baseIndex]
+        baseDice = baseDice[baseIndex]
+        return baseStr, baseDice
+
+def craftRoll(_baseDice,_toolDice,_dc):
+    # Actual Roll
+    dice = ("2d20kh1" if adv==1 else "2d20kl1" if adv==-1 else "1d20")
+    dice += "+"+_baseDice+"+"+_toolDice
+    dice += (b if b else "")
+    dice += ("+1d4[guidance]" if guidance else "")
+
+    craftRoll = vroll(dice)
+    succ = craftRoll.total>=dc
+
+    return craftRoll, succ
+
+def extractSvar(_rarity,_usage,_half):
+    rarities = [r[0] for r in dc]
+    usages = dc[0][1].keys()
+
+    rarity = [r for r in rarities if _rarity.lower() in r][0]
+    usage = [u for u in usages if _usage.lower() in u][0]
+    dc = dc[rarities.index(rarity)][1][usage]
+    goal = gl[rarities.index(rarity)][1][usage]
+    goal = -(goal // -2) if _half else goal
+
+    return rarity,usage,dc,goal
+
+###############################################################################################
+
+# Start a new craft
+if not main["craftStart"]:
+    # Main Args
+    item     = parse.last("item","",str)
+    rarity   = parse.last("rarity","",str)
+    usage    = parse.last("usage","",str)
+    tool     = parse.last("tool","",str)
+
+    adv      = parse.adv()
+    b        = ("+"+parse.join("b", "+", "") if parse.get("b") else "")
+    guidance = parse.get("guidance")
+    half     = parse.get("half")
+
+    if item and rarity and usage:
+        # Obtain Variables
+        baseStr, baseDice = baseParse(None,baseList)
+        toolStr, toolDice = toolParse(tool)
+        rarity,usage,dc,goal = extractSvar(rarity,usage,half)
+        nextTime = round(time())+cd
+
+        # Roll Parsing
+        craftRoll,succ = craftRoll(baseDice,toolDice,dc)
+        curr = 1 if succ else 0
+
+        # Store History
+        main["craftDetails"] = {
+            "item":item,
+            "rarity":rarity,
+            "usage":usage,
+            "dc":dc,
+            "goal":goal,
+            "curr":curr,
+            "nextTime":nextTime
+        }
+
+        main["diceDetails"] = {
+            "base":baseStr,
+            "tool":toolStr,
+            "adv":adv,
+            "mc":mc,
+            "b":b,
+            "guidance":guidance
+        }
+
+        main["craftStart"] = True
+        c.set_cvar("craftDict",dump_json(main))
+        
+        # Output String
+        outText = f''' -title "{name} has started a new craft!" '''
+        outText += f''' -desc "**Item Name:** {capitalize(item)}        
+        **Item Rarity**: {capitalize(rarity)}
+        **Item Type:** {capitalize(usage)}
+        **Craft DC:** {dc}
+        **Tool Used:** {toolStr}
+        **Time Taken:** {goal} days" '''
+        outText += f''' -f "DC {dc}|{craftRoll}" '''
+        outText += f''' -f "Result|{'Success!' if succ else 'Failure!'} Current Progress: {curr}/{goal}{' (+1)' if succ else ''}" '''
+        outText += f''' -f "Next Craft|You can carry out your next craft at {timeStr(nextTime)}." '''
+    else:
+        outText = f''' -title "Someone forgot to put in some things..." -desc "You need to give me everything before this will work!
+        
+        `!craft start -rarity <rarity> -item <item> -usage <usage> <args>`" '''
+else:
+    # Main Args
+    i = parse.get("i")
+
+    # Extract Variables
+    base     = main["diceDetails"]["base"]
+    tool     = main["diceDetails"]["tool"]
+    adv      = main["diceDetails"]["adv"]
+    mc       = main["diceDetails"]["mc"]
+    b        = main["diceDetails"]["b"]
+    guidance = main["diceDetails"]["guidance"]
+
+    # Matching svars
+    baseStr, baseDice = baseParse(base,baseList)
+    toolStr, toolDice = toolParse(tool)
+
+    item     = main["craftDetails"]["item"]
+    rarity   = main["craftDetails"]["rarity"]
+    usage    = main["craftDetails"]["usage"]
+    dc       = main["craftDetails"]["dc"]
+    goal     = main["craftDetails"]["goal"]
+    curr     = main["craftDetails"]["curr"]
+    nextTime = main["craftDetails"]["nextTime"]
+
+    if i or round(time())>=nextTime:
+        # Roll Parsing
+        craftRoll,succ = craftRoll(baseDice,toolDice,dc)
+        curr = curr+1 if succ else curr
+        nextTime = nextTime if i else round(time())+cd
+        done = curr>=goal
+
+        # Update History
+        main["craftDetails"]["curr"] = curr
+        main["craftDetails"]["nextTime"] = nextTime
+
+        outText = f''' -title "{name} is currently crafting a {capitalize(item)}!" '''
+        outText += f''' -f "DC {dc}|{craftRoll}" '''
+        outText += f''' -f "Result|{'Success!' if succ else 'Failure!'} Current Progress: {curr}/{goal}{' (+1)' if succ else ''}" '''
+        
+        # Reset Craft and send to History once done
+        if done:
+            # Send to History
+            doneTime = round(time())
+            main["history"][capitalize(item)] = doneTime
+
+            # End the Craft
+            main["craftStart"] = False
+            c.set_cvar("craftDict",dump_json(main))
+
+            outText += f''' -f "Craft Complete!|Your {capitalize(item)} has been completed at {timeStr(doneTime)}! You can view a list of your completed crafts at `!craft history`. Happy crafting!" '''
+        else:
+            c.set_cvar("craftDict",dump_json(main))
+            outText += f''' -f "Free Craft|This craft is not counted against the once a day craft. You can carry out your next craft at {timeStr(nextTime)}." ''' if i else f''' -f "Next Craft|You can carry out your next timegated craft at {timeStr(nextTime)}." '''
+
+
+    else:
+        outText = f''' -title "{name} tried to craft ahead of time!" '''
+        outText += f''' -desc "You're too early for your next craft! The earliest you can craft again is at {timeStr(nextTime)}!" '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}craft for help | I love Pie"'''
+
+</drac2>

@@ -1,0 +1,22 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+c = character()
+pb = proficiencyBonus
+
+# Variable Initialization
+main = c.get_cvar("craftDict", "")
+main = load_json(main) if main else {'history':[]}
+
+hist = main['history']
+
+outText = f''' -title "{name}'s wants to view their Crafting History" '''
+outText += f''' -desc "There is nothing here! Perhaps you should try finishing up a craft." ''' if not hist else f''' -desc "A list of your completed crafts. Stand proud, for you are skilled." -f "Completed Crafts|{n.join([item[0] + ". " + item[1] + " completed at <t:" + hist[item[1]] + ":d>" for item in enumerate(hist, start=1)])}" '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}craft for help | I love Pie"'''
+
+</drac2>

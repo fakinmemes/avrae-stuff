@@ -1,0 +1,35 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+c = character()
+pb = proficiencyBonus
+
+outText = f''' -title "{name} would like some help on how to Craft" -desc "Currently available commands:
+
+`!craft setup` — Tells you how to set up the svars required to run this alias. The alias will return an error if you don't have at least the `craftDC` and `craftGoal` svars set up.
+`!craft history` — Lets you view a history of your crafts.
+`!craft reset` — Resets your current craft.
+
+`!craft start` — The main driver of the alias. Use with the various arguments below to start a craft, after which you can run `!craft start [-i]` until the craft is complete.
+
+Valid Arguments
+`-item <item>` — Defines the crafted item. Use '' for multiple words.
+`-rarity <rarity>` — Defines the rarity of the item. Has pseudo-fuzzy matching.
+`-usage <usage>` — Defines the type of the item. Has pseudo-fuzzy matching.
+`-tool <tool>` — Will match the tool to the ones that are set using the `!tool` alias and automatically get proficiency or expertise from it.
+
+`adv/dis` — Rolls with advantage or disadvantage.
+`-b` — Can be input multiple times, will add a bonus to the check as specified by the argument.
+`guidance` — Adds a guidance bonus to the check.
+`half` — Makes the craft require half the number of days to craft (rounded up).
+
+`-i` — For use after the craft has started. Will make a free check not gated by the time set by the server cooldown." '''
+
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}craft for help | I love Pie"'''
+
+</drac2>

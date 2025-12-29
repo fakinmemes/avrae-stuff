@@ -1,0 +1,1 @@
+Automates crafting for a server I'm in but feel free to use it yourself as well.
