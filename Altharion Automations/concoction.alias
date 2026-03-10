@@ -1,0 +1,53 @@
+{{parse=argparse(&ARGS&)}}{{t,b=parse.get("tough",None),parse.get("big",None)}}{{"cast" if b or t else 'embed'}} <drac2>
+
+pfx   = ctx.prefix
+l     = level
+c     = character()
+cbc   = combat().get_combatant(name) if combat() else None
+cct   = "Enhancing Concoction (Tough)"
+ccb   = "Enhancing Concoction (Big)"
+i     = parse.get("i")
+
+# Create CC in case it is not made
+c.create_cc_nx(
+    name = cct,
+    minVal = 0,
+    maxVal = 1,
+    reset = "long",
+    dispType = "hex",
+    desc = "An enhancing concoction. Fancy."
+    )
+c.create_cc_nx(
+    name = ccb,
+    minVal = 0,
+    maxVal = 1,
+    reset = "long",
+    dispType = "hex",
+    desc = "An enhancing concoction. Fancy."
+    )
+count = (c.get_cc(cct)<=0 and t) or (c.get_cc(ccb)<=0 and b)
+
+if t:
+    # CC Manipulation
+    c.mod_cc(cct,-1,True) if not i else ""
+
+    outText = f''' "Shield of Faith" -i -noconc ''' + (f''' -t "{name}" ''' if cbc else None)
+    outText += f''' -title "{name} uses their Enhancing Concoction to get Tougher!" '''
+    outText += f''' -f "{cct}|{c.cc_str(cct)}" '''
+elif b:
+    # CC Manipulation
+    c.mod_cc(ccb,-1,True) if not i else ""
+
+    outText = f''' "Enlarge/Reduce" -i -noconc ''' + (f''' -t "{name}" fail ''' if cbc else None)
+    outText += f''' -title "{name} uses their Enhancing Concoction to get Bigger!" '''
+    outText += f''' -f "{ccb}|{c.cc_str(ccb)}" '''
+else:
+    outText = f''' -title "{name} tries to use their Enhancing Concoction!" '''
+    outText = f''' -desc "You can run the commands below to use the ability.
+    
+    `!concoction tough [-i]` will cast the level 3 ability.
+    `!concoction big [-i]` will cast the level 5 ability." '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}concoction for help | I love Pie"'''
+
+</drac2>

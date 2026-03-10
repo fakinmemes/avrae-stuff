@@ -21,6 +21,7 @@ Valid Arguments
 `-rarity <rarity>` — Defines the rarity of the item. Has pseudo-fuzzy matching.
 `-usage <usage>` — Defines the type of the item. Has pseudo-fuzzy matching.
 `-tool <tool>` — Will match the tool to the ones that are set using the `!tool` alias and automatically get proficiency or expertise from it.
+`str/dex/con/int/wis/cha` — Sets the skill used for the check.
 
 `adv/dis` — Rolls with advantage or disadvantage.
 `-b` — Can be input multiple times, will add a bonus to the check as specified by the argument.

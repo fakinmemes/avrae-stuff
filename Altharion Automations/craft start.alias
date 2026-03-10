@@ -41,7 +41,8 @@ def toolParse(_tool):
     tools = get("toolProficiencies").split('\n')[:-1]
     toolNames = get("pTools").split(', ')+get("eTools").split(', ')
 
-    toolStr = [t for t in toolNames if _tool.lower() in t.lower() and _tool][0] if _tool else "Untrained"
+    toolStr = [t for t in toolNames if _tool.lower() in t.lower() and _tool] if _tool else []
+    toolStr = toolStr[0] if toolStr else "Untrained"
     toolList = [t for t in tools if _tool.lower().replace(" ", "").replace("'", "") in t and _tool]
     tb = int(toolList[0][-1:])*pb if toolList else 0
     toolDice = tb+("[proficient]" if tb//pb==1 else "[expertise]" if tb//pb==2 else "[untrained]")
@@ -130,7 +131,6 @@ if not main["craftStart"]:
             "base":baseStr,
             "tool":toolStr,
             "adv":adv,
-            "mc":mc,
             "b":b,
             "guidance":guidance
         }
@@ -161,7 +161,6 @@ else:
     base     = main["diceDetails"]["base"]
     tool     = main["diceDetails"]["tool"]
     adv      = main["diceDetails"]["adv"]
-    mc       = main["diceDetails"]["mc"]
     b        = main["diceDetails"]["b"]
     guidance = main["diceDetails"]["guidance"]
 

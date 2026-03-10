@@ -1,0 +1,1 @@
+Alias for the Harbinger of the Void Transformation. Handles all features related to it, including the madness table.

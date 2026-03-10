@@ -1,0 +1,32 @@
+cast "Spirit Shroud" <drac2>
+
+pfx = ctx.prefix
+n = '\n'
+args = &ARGS&
+parse = argparse(args)
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ""
+
+i = parse.get('i')
+level = parse.last('l',3,int)
+slot = max(level,3)
+
+radiant = parse.get('radiant')
+necrotic = parse.get('necrotic')
+cold = parse.get('cold')
+end = parse.get('end')
+
+d = str(floor((slot-1)/2))+'d8 '
+damage = d+('[necrotic]' if necrotic else '[cold]' if cold else '[radiant]')
+dtext = d+('Necrotic' if necrotic else 'Cold' if cold else 'Radiant')
+dlist = [damage,dtext]
+
+ch.set_cvar('shroud',dump_json(dlist))
+
+outText = f''' {' '.join(args)} '''
+outText += f''' -title "{name} creates a {'Necrotic' if necrotic else 'Cold' if cold else 'Radiant'} Shroud!"'''
+
+return outText+f''' -footer "!shroud [radiant/necrotic/cold] [!cast args] | I love Pie" -color <color> -thumb <image>'''
+
+</drac2>

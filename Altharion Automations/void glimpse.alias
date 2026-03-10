@@ -1,0 +1,58 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+c = character()
+
+# Arguments
+reset = parse.get("reset", False)
+
+# Initialise GVAR
+tf = int(c.get_cvar("voidTransformation", 0))
+dice = load_json(c.get_cvar("glimpseRolls","[]"))
+desc = f'''"Whenever you finish a short or long rest, you roll a number of d20s equal to your Transformation Stage and record the results. 
+    
+    When you or a creature you can see makes a d20 Test (an attack roll, saving throw, or ability check), you may choose to replace the result with one of your recorded d20 results as a free action. You must decide to do so after the roll is made but before the outcome is determined, and the chosen recorded result is then expended. 
+    
+    When you attempt to replace a roll, roll a d4; on a 2–4, the test uses the chosen recorded result, while on a 1, the replacement fails and the test instead uses the original roll."'''
+
+if reset:
+    c.set_cvar("glimpseRolls", "[]")
+    outText = f''' -title "Glimpse of the Void rolls refreshed!" -desc "Your rolls have been reset. Run `{pfx}void glimpse` to generate new rolls." '''
+elif dice:
+    # Checks if a roll was consumed in arguments.
+    num = int(args[0]) if args else None
+    consumedRoll = None
+    if num in dice:
+        dice.remove(num)
+        consumedRoll = num
+        c.set_cvar("glimpseRolls", dump_json(dice))
+    joinedText = n.join([f"1d20 ({d}) = `{d}`" for d in dice]) if dice else "No rolls remaining."
+
+    # Check if the roll gets replaced.
+    rCheck = vroll("1d4")
+
+    outText = f''' -title "{name} takes a Glimpse into the Void!" '''
+    outText += f''' -desc {desc} '''
+    outText += f''' -f "Stored Dice|{joinedText}" '''
+    outText += f''' -f "Replacement Check|{rCheck.full}{n}{"Success! The replacement succeeded." if rCheck.total != 1 else "Failure! The replacement failed."}" ''' if consumedRoll else ""
+else:
+    # Roll the dice
+    dRolls = []
+    dVals = []
+    for d in range(tf):
+        r = vroll("1d20")
+        dRolls.append(r)
+        dVals.append(r.total)
+    c.set_cvar("glimpseRolls", dump_json(dVals))
+    joinedText = '\n'.join([d.full for d in dRolls])
+
+    outText = f''' -title "{name} takes a Glimpse into the Void!" '''
+    outText += f''' -desc {desc} '''
+    outText += f''' -f "Generated Rolls|{joinedText}" '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}void for help | I love Pie"'''
+
+</drac2>

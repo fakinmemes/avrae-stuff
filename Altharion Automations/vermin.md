@@ -1,0 +1,1 @@
+Handles the 3rd level Verminkin feature and the related summonings.

@@ -1,0 +1,20 @@
+save wis <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+c = character()
+
+# Variables
+dc = 10 + level//2 + int(c.get_cvar("voidTransformation", 0))
+cm = vroll("1d6")
+
+outText = f''' -title "{name} has spiraled into an Abyssal Craze!" '''
+outText += f''' -f "Cosmic Madness Check|{cm.full}{n}{"You are safe from the madness today..." if cm.total > 2 else "You are not safe! Roll on the Cosmic Madness Table."}" '''
+outText += f''' -f "Abyssal Craze|Whenever you fail an Intelligence, Wisdom, or Charisma saving throw, roll a d6. On a result of 1–2, you must roll on the Cosmic Madness Table. In addition, when you witness incomprehensible or horrific phenomena, as determined by the DM, you must make a Wisdom saving throw with a DC equal to 10 + half your character level(rounded down) + your Transformation Stage or roll on the Cosmic Madness Table." '''
+outText += f''' -dc {dc} '''
+
+return outText
+
+</drac2>

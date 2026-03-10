@@ -1,0 +1,1 @@
+{"name":"Random Spells 101","collection":"60c42afd95cccad933c3d45e","aliases":{"fireshield":"60c9e5f319f6daec56e89b02","shroud":"60c9e72d19f6daec56e89b03","counter":"6141547409a9904197d2860a","dispel":"614158ca09a9904197d2860d"},"snippets":{"shroud":"60c9e7bd95cccad933c3d8a3"}}

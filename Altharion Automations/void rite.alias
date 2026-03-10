@@ -1,0 +1,75 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+c = character()
+cb = combat()
+pb = proficiencyBonus
+
+# Args
+i = parse.get("i")
+update = parse.get("update")
+
+# Initialise GVAR
+tf = int(c.get_cvar("voidTransformation", 0))
+dc = 10 + l//2 + tf
+
+# CC Handling
+cc = "Rite of the Void"
+if update:
+    c.create_cc(
+        name=cc,
+        minVal=0,
+        maxVal=tf,
+        reset="long",
+        dispType="star"
+    )
+else:
+    c.create_cc_nx(
+        name=cc,
+        minVal=0,
+        maxVal=tf,
+        reset="long",
+        dispType="star"
+    )
+
+if update:
+    outText = f''' -title "You have updated your Rite of the Void CC!" '''
+    outText += f''' -f "{cc}|{c.cc_str(cc)}" '''
+else:
+    # CC Handling
+    c.mod_cc(cc, -1) if not i else None
+
+    # Add Effect
+    cb_list = [a.name for a in cb.combatants] if cb else []
+    if name in cb_list:
+        e = cb.get_combatant(name).add_effect("Rite of the Void", duration=10, buttons=[{
+            "label": "End Rite of the Void",
+            "verb": "tries to end their Rite of the Void",
+            "style": "4",
+            "automation": [{"type": "target", "target": "self", "effects": [{
+                "type": "save", "stat": "wis", "fail": [{
+                    "type": "text",
+                    "text": "Roll on the Cosmic Madness Table!",
+                    "title": f"{name} fails their Void Madness Save!"
+                },{
+                    "type": "remove_ieffect"
+                }], "success": [{
+                    "type": "remove_ieffect"
+                }], "dc": dc
+            }]}]
+        }])
+
+    outText = f''' -title "{name} triggers the Rite of the Void!" '''
+    outText += f''' -desc "As a bonus action, you may sacrifice hit points equal to your character level to activate this rite, which lasts for 1 minute. While the rite is active, once per turn when you roll damage dice or roll dice to restore hit points to a creature, you may add a bonus to the roll equal to your proficiency bonus multiplied by your Transformation Stage.When the rite ends, the strain on your mind manifests, and you must make a Wisdom saving throw with a DC of {dc}. On a failure, you roll on the Cosmic Madness Table. 
+
+    You may use this feature a number of times per long rest equal to your Transformation Stage." '''
+    outText += f''' -f "{name}|{e}" ''' if name in cb_list else ""
+    outText += f''' -f "{cc}|{c.cc_str(cc)}{"(-1)" if not i else ""}" '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}void for help | I love Pie"'''
+
+</drac2>

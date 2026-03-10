@@ -1,0 +1,196 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+c = character()
+cb = combat()
+pb = proficiencyBonus
+t = parse.get("t", type_=combat().get_combatant)[0] if cb else None
+
+# ================== FUNCTION SPACE ==================
+
+def damage_self(damage_str):
+    if c.resistances.is_immune("psychic"):
+        out = vroll(f"{damage_str}*0")
+        return out
+    elif c.resistances.is_resistant("psychic"):
+        out = vroll(f"{damage_str}/2")
+        return out
+    elif c.resistances.is_vulnerable("psychic"):
+        out = vroll(f"{damage_str}*2")
+        return out
+    else:
+        out = vroll(f"{damage_str}")
+        return out
+
+def madness(e_name,duration,end,passive_effects,dice):
+    t_name = t.name if t else name
+    cb_list = [a.name for a in cb.combatants] if cb else []
+    if t_name in cb_list:
+            e = cb.get_combatant(t_name).add_effect(e_name, duration=duration, end=end, passive_effects=passive_effects)
+            d = cb.get_combatant(t_name).damage(f"{tf}d{dice}[psychic]")["roll"]
+            # Embed Output
+            out = f''' -f "Meta|**Effect:** {e} {n}**Damage:** {d.full}" '''
+    else:
+        d = damage_self(f"{tf}d{dice} [psychic]")
+        c.modify_hp(-d.total)
+        # Embed Output
+        out = f''' -f "Meta|**Damage:** {d.full}" '''
+    t_str = t.hp_str() if t else "<"+c.hp_str()+">"
+    out += f''' -f "{t_name}|{t_str} (-{d.total} HP)" '''
+    return out 
+
+
+# Initialise GVAR
+tf = int(c.get_cvar("voidTransformation", 0))
+
+# Make the Dice Roll
+r = vroll("1d100")
+_n = r.total//5
+
+# Output
+outText = f''' -f "Cosmic Madness Roll|{r.full}, {n}" '''
+
+match _n:
+    case 0:
+        # Embed Output
+        outText += f''' -title "Your Sanity fractures under Impossible Truths..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d12 Psychic Damage. You suffer a -{tf} penalty to AC and saving throws until the start of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=1, end=False, passive_effects={
+                "ac_bonus": -tf,
+                "save_bonus": -tf
+            },dice="12")
+    case 1:
+        # Embed Output
+        outText += f''' -title "The Reality of the Cosmos staggers your Mind..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d12 Psychic Damage. You suffer a -{tf} penalty to your attack rolls and spell save DC until the end of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=2, end=True, passive_effects={
+                "to_hit_bonus": -tf
+            },dice="12")
+    case 2:
+        # Embed Output
+        outText += f''' -title "The Abyss stares back..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d12 Psychic Damage. Until the end of your next turn, you are Frightened of the nearest creature to you and your movement speed is reduced by {5*tf} feet." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Frightened of nearest creature, movement speed reduced by {tf*5})", duration=2, end=True, passive_effects={},dice="12")
+    case 3:
+        # Embed Output
+        outText += f''' -title "Your Mind folds in on Itself..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d12 Psychic Damage. Until the start of your next turn, you cannot take reactions and your movement speed is reduced by {tf*10} feet." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Cannot take reactions, movement speed reduced by {tf*10})", duration=1, end=False, passive_effects={},dice="12")
+    case 4:
+        # Embed Output
+        outText += f''' -title "Your Instincts misfire violently..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d10 Psychic Damage. For your next {tf} attack rolls, you must roll twice and take the lower result." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=0, end=False, passive_effects={},dice="10")
+    case 5:
+        # Embed Output
+        outText += f''' -title "Your Body moves before your Mind can stop it..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d10 Psychic Damage. At the start of your next turn, you must move {5*tf if tf<3 else 10*tf} feet in a random direction." '''
+        outText += f''' -f "Random Direction|{vroll("1d8").full}" ''' 
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=0, end=False, passive_effects={},dice="10")
+    case 6:
+        # Embed Output
+        outText += f''' -title "Your Grip on Time falters..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d10 Psychic Damage. Until the end of this combat, your Initiative is reduced by {3*tf} and you suffer a {tf} penalty to Dexterity Checks." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (-{tf} to Dexterity Checks)", duration=None, end=False, passive_effects={},dice="10")
+    case 7:
+        # Embed Output
+        outText += f''' -title "You become aware of your Place within the Greater Cosmos..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d10 Psychic Damage. The next spell you cast before the end of your next turn has its casting time increased by a number of steps equal to your Transformation Stage.{n+n}The Steps are: Reaction > Bonus Action > Action > 1 Minute > 10 Minutes > 1 Hour > ..." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=2, end=True, passive_effects={},dice="10")
+    case 8:
+        # Embed Output
+        outText += f''' -title "You are overcome by Existential Dread..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d8 Psychic Damage. You suffer a -{tf} penalty to your attack rolls until the end of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=2, end=True, passive_effects={
+                "to_hit_bonus": -tf
+        },dice="8")
+    case 9:
+        # Embed Output
+        outText += f''' -title "Perception fails as Darkness clouds your Vision..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d8 Psychic Damage. Until the end of your next turn, the range of your spells and attacks are reduced by {tf*10} feet, up to a minimum of touch." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Ranges reduced)", duration=2, end=True, passive_effects={},dice="8")
+    case 10:
+        # Embed Output
+        outText += f''' -title "The Void projects your Worst Fears over your Allies..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d8 Psychic Damage. Until the end of your next turn, you cannot gain advantage and allies within {tf*5} feet of you cannot grant you beneficial effects." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Cannot gain advantage)", duration=2, end=True, passive_effects={},dice="8")
+    case 11:
+        # Embed Output
+        outText += f''' -title "Reality and Imagination blur together..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d8 Psychic Damage. You suffer a -{tf} penalty to your Perception, Insight and Investigation checks for 1 minute." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (-{tf} perception, insight, investigation checks)", duration=10, end=False, passive_effects={},dice="8")
+    case 12:
+        # Embed Output
+        outText += f''' -title "Voices Cloud your Hearing..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d6 Psychic Damage. You suffer a -{tf} penalty to your Concentration checks and cannot take reactions until the start of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Cannot take reactions, -{tf} concentration checks)", duration=1, end=False, passive_effects={},dice="6")
+    case 13:
+        # Embed Output
+        outText += f''' -title "Madness makes you Reckless..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d6 Psychic Damage. You suffer a -{tf} penalty to your AC until the start of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=1, end=False, passive_effects={
+                "ac_bonus": -tf
+        },dice="6")
+    case 14:
+        # Embed Output
+        outText += f''' -title "The Fear of the Void weakens your Legs..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d6 Psychic Damage. Until the end of your next turn, your movement speed is reduced by {tf*10} feet." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Movement speed reduced by {tf*10})", duration=2, end=True, passive_effects={},dice="6")
+    case 15:
+        # Embed Output
+        outText += f''' -title "Your thoughts Echo Endlessly..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d6 Psychic Damage. You suffer a -{tf} penalty to your next {tf} d20 checks." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=0, end=False, passive_effects={},dice="6")
+    case 16:
+        # Embed Output
+        outText += f''' -title "Overwhelming Fear grips your Heart..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d4 Psychic Damage. You suffer a -{tf} penalty to your Athletics checks and cannot take the Dash action until the end of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Cannot dash, -{tf} athletics checks)", duration=2, end=True, passive_effects={},dice="4")
+    case 17:
+        # Embed Output
+        outText += f''' -title "Your sense of self Fractures..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d4 Psychic Damage. You suffer a -{tf} penalty to your AC until the start of your next turn." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=1, end=False, passive_effects={
+                "ac_bonus": -tf
+        },dice="4")
+    case 18:
+        # Embed Output
+        outText += f''' -title "You lose touch with your Humanity..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d4 Psychic Damage. Until the end of your next turn, you cannot gain temporary hit points, and all healing received by you is reduced by {tf}." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness (Cannot gain THP, healing received is reduced by {tf})", duration=2, end=True, passive_effects={},dice="4")
+    case 19:
+        # Embed Output
+        outText += f''' -title "The void whispers your Name..." '''
+        outText += f''' -f "Roll Outcome|You take {tf}d4 Psychic Damage. The next time you deal damage before the end of your next turn, it is reduced by {tf*2}." '''
+        # Command Output
+        outText += madness(e_name=f"Cosmic Madness", duration=2, end=True, passive_effects={},dice="4")
+    case _:
+        # This should never trigger.
+        err("What did you do to get to this point?")
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}void for help | I love Pie"'''
+
+</drac2>

@@ -1,0 +1,1 @@
+Handles Rite of the Void snippet automation.

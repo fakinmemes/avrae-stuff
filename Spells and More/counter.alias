@@ -1,0 +1,46 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+parse = argparse(&ARGS&)
+arg = &ARGS&
+n = '\n'
+ch = character()
+c = combat()
+help = parse.get('help')
+
+adv = parse.adv(boolwise=True)
+b = ("+"+parse.join('b', '+', '') if parse.get('b') else '')
+dc = parse.last('dc',0,int)
+mc = parse.last('mc',0,int)
+l = parse.last('l',3,int)
+i = parse.get('i')
+t = parse.get('t')
+cb = c.get_combatant(t[0]) if c and t else ''
+
+sc = load_json(get('subclass',{}))
+abj = ('Abjuration' in load_json(get('subclass',{})).values() or parse.get('abj')) and get('WizardLevel',0)>=10
+pb = proficiencyBonus
+mod = cb.spellbook.spell_mod if cb else spell 
+csroll = vroll(('2d20kh1' if adv==1 else '2d20kl1' if adv==-1 else '1d20')+('mi'+mc if mc else '')+'+'+mod+('+'+b if b else '')+('+'+pb+' [abjuration]' if abj else ''))
+
+cancast = cb.spellbook.can_cast('Counterspell',3) if cb else ch.spellbook.can_cast('Counterspell',3)
+
+if help:
+	outText = f''' -title "{name} needs help with Casting!" -desc "The alias works as if it were to cast counterspell, except it rolls the check at the same time." -f "Valid Arguments (General)|`-t <target>` - Targets another combatant in combat to make them cast counterspell if they have the spell slots for it. 
+`-abj` - Makes the check with the level 10 Abjuration Wizard Bonus. You also get it automatically as a Level 10 Abjuration Wizard if you set your level with `!level`" -f "Valid Arguments (Check)|adv/dis - Give advantage/disadvantage to the check roll(s).
+`-b <bonus>` - Adds a bonus to the roll.
+`-dc <dc>` - Sets a DC and checks if success or failure.
+`-mc <minimum roll>` - Sets the minimum roll on the dice." -f "Valid Arguments (Casting)|`-i` - Ignores Spellbook restrictions (e.g. when casting from an item, as a ritual, etc.)
+`-l <#>` - Specifies the level to cast the spell at."''' 
+elif ch.spellbook.get_slots(l)<=0 and not i:
+	outText = f''' -title "{cb.name if cb else name} has run out of Spell Slots!" -desc "You do not have enough Level {l} spell slots to cast Counterspell. Take a rest or add them back!"'''
+elif not cancast and not i:
+	outText = f''' -title "{name} is a Liar!" -f "Cannot Cast Spell|{cb.name+' does' if cb else 'You do'}  not have Counterspell in your Spellbook. Add it to the Spellbook or use `-i` to cast the spell!"'''
+else:
+	cb.spellbook.use_slot(l) if cb else ch.spellbook.use_slot(l) if not i else ''
+	outText = f''' -title "{cb.name if cb else name} casts Counterspell!" -f "Description|You attempt to interrupt a creature in the process of casting a spell. If the creature is casting a spell of 3rd level or lower, its spell fails and has no effect. If it is casting a spell of 4th level or higher, make an ability check using your spellcasting ability. The DC equals 10 + the spell\'s level. On a success, the creature\'s spell fails and has no effect." -f "Counterspell Roll|{"**DC "+dc+"**"+n if dc else ''}{csroll}{n}{"*Success*" if csroll.total>=dc and dc else "*Failure*" if dc else ''}" -f "Countered Spells|Level {max(min(csroll.total-10,9),l)} Spells and below"'''
+	outText +=f''' -f "Spell Slots|{cb.spellbook.slots_str(l) if cb else ch.spellbook.slots_str(l)}"''' if not i else ''
+ 
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}counter help for help | I love Pie"'''
+
+</drac2>

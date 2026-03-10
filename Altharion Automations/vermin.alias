@@ -1,0 +1,43 @@
+multiline <drac2>
+
+pfx   = ctx.prefix
+args  = &ARGS&
+parse = argparse(&ARGS&)
+n     = '\n'
+c     = character()
+pb    = proficiencyBonus
+
+i = parse.get('i')
+cc = "Verminkin"
+
+# Create CC in case it is not made
+c.create_cc_nx(
+    name = cc,
+    minVal = 0,
+    maxVal = 1,
+    reset = "short",
+    dispType = "hex",
+    desc = "Rats. An army of rats."
+    )
+
+# Use CC and Spell Slots
+slot = parse.last('l',1,int)
+
+c.mod_cc(cc,-1,True)
+c.spellbook.use_slot(slot)
+
+# Initial Embed.
+outText = f''' !embed -title "{name} calls forth their Verminkin!" '''
+outText += f''' -desc "You can comprehend and verbally communicate with Tiny Beasts.
+
+As a Magic action, you can expend a spell slot to summon vermin swarms. You summon a number of swarms equal to the slot's level for 1 hour. Each swarm is summoned to an unoccupied space you can see within 30 feet of yourself. A swarm uses the Swarm of Vermin stat block.
+
+In combat, each swarm acts during your turn. It can move and use its Reaction on its own, but the only action it takes is the Dodge action unless you take a Bonus Action to command it to take an action in its stat block or some other action. You can command each swarm with a single Bonus Action.
+
+Once you use this feature, you can't use it again until you finish a Short or Long Rest." '''
+outText += f''' -f "{cc}|{c.cc_str(cc)} (-1)" -f "Spell Slots|{c.spellbook.slots_str(slot)} (-1)" '''
+outText += f''' -thumb {image} -color {color} -footer "{pfx}vermin -l <level> [-i] | I love Pie" '''
+
+return outText
+
+</drac2>

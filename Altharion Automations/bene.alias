@@ -1,0 +1,59 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+pb = proficiencyBonus
+
+strike = parse.get("strike")
+bolster = parse.get("bolster")
+cure = parse.get("cure")
+
+outText = f''' -title "{name} calls forth their Guardian's Benediction!" '''
+
+if strike:
+    if l>=17:
+        outText += f''' -desc "When you affect an allied creature with a spell or ability, the target can use its reaction to cast a spell of 7th level or lower or make two weapon attacks." '''
+    elif l>=9:
+        outText += f''' -desc "When you affect an allied creature with a spell or ability, the target can use its reaction to cast a spell of 3rd level or lower or make a single weapon attack." '''
+    else:
+        outText += f''' -desc "When you affect an allied creature with a spell or ability, the target can use its reaction to cast a cantrip or make a single weapon attack." '''
+elif bolster:
+    thp = 3*pb
+
+    c = combat()
+    targets = parse.get('t')
+    targets = [] if not c else targets
+    combatants = []
+
+    for x in targets:
+        if (combatant := combat().get_combatant(x) ):
+            combatants.append(combatant)
+        else:
+            combatants += combat().get_group(x).combatants
+
+    outText += f''' -desc "When you affect an allied creature with a spell or ability, the target gains {thp} temporary hit points." -f "Meta|Temp HP: 3 x {pb} = `{thp}`"'''
+
+    for x in combatants:
+        x.set_temp_hp(thp)
+        outText += f''' -f "{x.name}|{x.hp_str()}|inline" '''
+
+elif cure:
+    outText += f''' -desc "When you affect an allied creature with a spell or ability, you can choose to remove one of the following conditions from them." '''
+    if l>=9:
+        outText += f''' -f "Conditions|Grappled, prone, blinded, deafened, poisoned, restrained, charmed, or frightened." '''
+    elif l>=17:
+        outText += f''' -f "Conditions|Grappled, prone, blinded, deafened, poisoned, restrained, charmed, frightened, paralyzed, petrified, or stunned." '''
+    else:
+        outText += f''' -f "Conditions|Grappled, prone, blinded, deafened, or poisoned." '''
+else:
+    outText += f''' -desc "There are 3 commands offered by this alias, as shown below.
+    
+    `{pfx}bene strike` will use its strike feature.
+    `{pfx}bene bolster -t target` will use its bolster feature for the targets selected.
+    `{pfx}bene cure` will use its cure feature." '''
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}bene for help | I love Pie"'''
+
+</drac2>

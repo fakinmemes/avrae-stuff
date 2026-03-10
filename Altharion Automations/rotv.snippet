@@ -1,0 +1,16 @@
+<drac2>
+c = character()
+cb = combat()
+pb = proficiencyBonus
+tf = int(c.get_cvar("voidTransformation", 0))
+
+cb_list = [a.name for a in cb.combatants] if cb else []
+e = cb.get_combatant(name).get_effect("Rite of the Void") if name in cb_list else None
+
+if name not in cb_list:
+    return f''' -d1 {pb*tf} -f "Rite of the Void|Once per turn when you roll damage dice or roll dice to restore hit points to a creature, you may add a bonus to the roll equal to your proficiency bonus multiplied by your Transformation Stage." "" '''
+if not e:
+    return f''' -f "Cheater!|You do not have Rite of the Void active, this effect does not work!" '''
+return f''' -d1 {pb*tf} -f "Rite of the Void|Once per turn when you roll damage dice or roll dice to restore hit points to a creature, you may add a bonus to the roll equal to your proficiency bonus multiplied by your Transformation Stage." "" '''
+
+</drac2>

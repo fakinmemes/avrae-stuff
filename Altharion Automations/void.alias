@@ -1,0 +1,31 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+l = level
+c = character()
+pb = proficiencyBonus
+
+# Initialise GVAR
+tf = int(c.get_cvar("voidTransformation", 0))
+
+outText = f''' -title "You are filled with Void and Madness!" -desc "Hi! This is the alias that handles the [Harbinger of the Void](https://www.dndbeyond.com/feats/2271045-info-post-harbinger-of-the-void-transformation) transformation. Have fun!" '''
+outText += f''' -f "Harbinger of the Void Level|You are currently at Transformation level {tf}." '''
+outText += f''' -f "Help|`!void madness` will roll on the void madness table and apply all relevant effects if in combat.
+
+`!void set -l <level>` sets your Harbinger of the Void Transformation level.
+`!void set reset` resets your Harbinger of the Void Transformation level.
+
+`!void rite` uses the Rite of the Void Feature, providing you a button to end the transformation in initiative.
+`!void rite update` updates the CC for the Rite of the Void Feature.
+
+`!void glimpse #` sets up your Glimpse of the Void rolls, and if a number is provided, does the automation to check if the replacement is successful.
+`!void glimpse reset` resets your Glimpse of the Void rolls.
+
+`!void craze` triggers both Abyssal Craze features at the same time. Functions as a save for relevant arguments." '''
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}void for help | I love Pie"'''
+
+</drac2>

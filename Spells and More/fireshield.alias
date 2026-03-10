@@ -1,0 +1,34 @@
+tembed <drac2>
+
+pfx = ctx.prefix
+n = '\n'
+args = &ARGS&
+parse = argparse(args)
+c = combat()
+ch = character()
+chc = c.get_combatant(name) if c else ""
+
+i = parse.get('i')
+level = parse.last('l',4,int)
+slot = max(level,4)
+
+cold = parse.get('cold')
+warm = parse.get('warm')
+
+cshield = ['Fire Shield (Cold)','-attack "|2d8 [cold]|In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with a frigid chill. The attacker takes 2d8 cold damage from the cold shield." -resist fire']
+wshield = ['Fire Shield (Warm)','-attack "|2d8 [fire]|In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with flames. The attacker takes 2d8 fire damage from the warm shield." -resist cold']
+shield = cshield if cold else wshield
+
+fscvar = 'cold' if cold else 'warm'
+ch.set_cvar('Fire Shield',fscvar)
+
+chc.add_effect(shield[0],shield[1],100) if chc else ""
+ch.spellbook.use_slot(slot) if not i else ""
+
+outText = f''' -title "{name} creates a {'Cold' if cold else 'Fire'} Shield!"'''
+outText += f''' -f "Effect|{chc.get_effect('Fire Shield')}"''' if chc else ""
+outText += f''' -f "Spell Description|Thin and wispy flames wreathe your body for the duration, shedding bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell early by using an action to dismiss it.{n}{n}The flames provide you with a {'Cold' if cold else 'Fire'} Shield. The Shield grants you resistance to {'Fire' if cold else 'Cold'} damage. In Addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts, causing the attacker to take 2d8 {'Cold' if cold else 'Fire'} damage." -f "Spell Slots {'(-1)' if not i else ''}| {slots_str(slot)}"'''
+
+return outText+f''' -footer "!fireshield [cold/warm] [-l #] [-i] | I love Pie" -color <color> -thumb <image>'''
+
+</drac2>

@@ -1,0 +1,1 @@
+For use with the !shroud alias. Adds the damage from the alias onto the attack roll, allowing for easier automation when cast.

@@ -1,0 +1,1 @@
+Handles Abyssal Craze automation.

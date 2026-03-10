@@ -1,0 +1,25 @@
+embed <drac2>
+
+pfx = ctx.prefix
+args = &ARGS&
+parse = argparse(&ARGS&)
+n = '\n'
+c = character()
+l = parse.last("l", 0, int)
+reset = parse.get("reset")
+
+# Initialise GVAR
+tf = int(c.get_cvar("voidTransformation", 0))
+
+if l and l>0 and l<=4:
+    outText = f''' -title "{name} sets their Transformation level!" -desc "You have set your Harbinger of the Void Transformation level to level {l}." '''
+    c.set_cvar("voidTransformation", l)
+elif reset:
+    outText = f''' -title "{name} resets their Transformation level!" -desc "You have reset your Harbinger of the Void Transformation level to 0." '''
+    c.set_cvar("voidTransformation", 0)
+else:
+    err(f"Please specify a level between 1 and 4! Usage: `{pfx}void set -l <level>`")
+
+return outText+f''' -thumb {image} -color {color} -footer "{pfx}void for help | I love Pie"'''
+
+</drac2>

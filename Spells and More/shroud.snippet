@@ -1,0 +1,8 @@
+<drac2>
+shroud = load_json(get("shroud","0"))
+d = shroud[0] if shroud else ""
+outText = f'''-f "Spirit Shroud|Until the spell ends, any attack you make deals an additional {shroud[1]} Damage when you hit a creature within 10 feet of you. Any creature that takes this damage can't regain hit points until the start of your next turn."''' if shroud else f''' -f "Liar|You do not have Spirit Shroud up."'''
+outText += f''' -d "{d}"''' if shroud else ""
+
+return outText
+</drac2>

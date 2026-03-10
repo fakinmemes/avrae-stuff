@@ -1,0 +1,1 @@
+Just a bunch of spells that are automated because they aren't properly automated in Avrae's automation. No, I didn't copy from Riptide and he didn't from me. Ours work differently.
